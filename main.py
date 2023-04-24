@@ -1,3 +1,4 @@
+import Ability
 from monster import *
 from Ability import *
 import math
@@ -5,16 +6,17 @@ from tools import *
 
 
 def print_monster_sheet():
-    f = open(f"C:/Users/devon/OneDrive/" +
+    f = open(f"C:/Users/devon/" +
              f"Desktop/MagusMonsters/Lvl{monster.lvl}_{monster.mtype}_" + f"{monster.m_name}.txt", "w")
     f.write(
         "Name: " + monster.m_name +
         "\nLevel: " + str(monster.lvl) +
         "\nType: " + monster.mtype +
-        # "\nTier: " + monster.tier +
+        "\nTier: " + monster.tier +
         "\n" + ("-" * 25) +
         "\nHealth: " + str(monster.hp) +
         "\nAura Rating: " + str(monster.aura) +
+        "\nBase Speed: " + str(monster.speed) + "'" +
         "\nPD: " + str(monster.pd) +
         "\nMD: " + str(monster.md) +
         "\nMana: " + str(monster.mana) +
@@ -110,17 +112,18 @@ while running:
             hp_mod = 0
             ability_pts = 0
             hp = 0
+            speed = 30
+            fly_speed = 0
             aura = 0
             pd = 0
             md = 0
             mana = 0
             attack_bonus = 0
 
-            # tier = "Normal"
             if tier == "Mob":
                 attr_pts = 2 + (2 * mlvl)
                 mag_pts = 3 + (2 * mlvl)
-                ability_pts = math.ceil(mlvl * .5)
+                ability_pts = math.ceil(mlvl * .5)  # every odd num level
                 hp_mod = 2
             elif tier == "Troop":
                 attr_pts = 4 + (2 * mlvl)
@@ -130,18 +133,20 @@ while running:
             elif tier == "Normal":
                 attr_pts = 6 + (2 * mlvl)
                 mag_pts = 9 + (2 * mlvl)
-                ability_pts = 2 + mlvl  #  math.ceil(mlvl * .5)
+                ability_pts = 2 + math.ceil(mlvl * .5)
                 hp_mod = 6
             elif tier == "Elite":
                 attr_pts = 8 + (2 * mlvl)
                 mag_pts = 9 + (2 * mlvl)
                 ability_pts = 3 + math.ceil(mlvl * .5)
                 hp_mod = 8
+                mana += 10
             elif tier == "Boss":
                 attr_pts = 10 + (2 * mlvl)
                 mag_pts = 12 + (2 * mlvl)
                 ability_pts = 4 + math.ceil(mlvl * .5)
                 hp_mod = 10
+                mana += 20
 
             phys_pts = math.ceil(attr_pts * .5)
             attr_pts -= phys_pts
@@ -341,7 +346,7 @@ while running:
                 ability_pts -= var.cost
 
             if mtype == "Fiend" and ability_pts >= 2:
-                var = first(x for x in temp_ability_list if x.name == "Fiendish Aura")
+                var = first(x for x in temp_ability_list if x.name == "Fiendish Blood")
                 m_abilities.append(var)
                 temp_ability_list.pop(temp_ability_list.index(var))
                 ability_pts -= 2
@@ -353,7 +358,7 @@ while running:
                 ability_pts -= var.cost
 
             if mtype == "Spirit":
-                var = first(x for x in temp_ability_list if x.name == "Spiritual Body")
+                var = first(x for x in temp_ability_list if x.name == "Spirit Body")
                 m_abilities.append(var)
                 temp_ability_list.pop(temp_ability_list.index(var))
 
@@ -403,13 +408,13 @@ while running:
             md += 7 + will + cha
             mana += 7 + (2 * cha) + mlvl
             if mtype == "Spirit":
-                aura += will + max(intellect, will, cha) + max(focus, talent, skill) + mlvl
+                aura += max(intellect, will, cha) + max(intellect, will, cha) + max(focus, talent, skill) + mlvl
                 if mlvl >= 1:
                     hp += (hp_mod + will) * mlvl
                 else:
-                    hp += (hp_mod + will) / 2
-                pd += 7 + will + will
-                attack_bonus += will + mlvl
+                    hp += (hp_mod + cha) / 2
+                pd += 7 + will + cha
+                attack_bonus += intellect + mlvl
                 strength = 0
                 dex = 0
                 sta = 0
@@ -429,11 +434,14 @@ while running:
             print("Name: " +
                   "\nLevel: " + str(mlvl) +
                   "\nType: " + mtype +
-                  # "\nTier: " + tier +
+                  "\nTier: " + tier +
                   "\n" + ("-" * 25) +
                   "\nHealth: " + str(hp) +
                   "\nAura Rating: " + str(aura) +
-                  "\nPD: " + str(pd) +
+                  "\nBase Speed: " + str(speed) + "'")
+            if fly_speed > 0:
+                print(f"\nFly Speed: {fly_speed}'")
+            print("PD: " + str(pd) +
                   "\nMD: " + str(md) +
                   "\nMana: " + str(mana) +
                   "\nMelee Attack Bonus: " + str(attack_bonus) +
@@ -459,8 +467,10 @@ while running:
             else:
                 m_name = str(input("Time to name your monster: "))
             monster = Monster(m_name, mlvl, m_abilities, mtype, strength, dex, sta, intellect, will, cha, focus,
-                              talent, skill, hp, aura, pd, md, mana, attack_bonus, tier)
+                              talent, skill, hp, aura, pd, md, mana, attack_bonus, tier, speed)
             print_monster_sheet()
     else:
+        update_csv()
         print("Exiting Program. Have a nice day!\n")
+        print_abilities()
         running = False
