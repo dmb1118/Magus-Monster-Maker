@@ -48,6 +48,7 @@ static_count = 1
 static_seed = 0
 running = True
 while running:
+    update_csv()
     static_seed = str(rng(9)) + str(rng(9)) + str(rng(9)) + str(rng(9)) + str(rng(9))
     choice = str(input("Would you like to create new monsters? Y/N\n"))
     if choice == "y" or choice == "Y":
@@ -112,7 +113,7 @@ while running:
             hp_mod = 0
             ability_pts = 0
             hp = 0
-            speed = 30
+            base_speed = 30
             fly_speed = 0
             aura = 0
             pd = 0
@@ -261,7 +262,20 @@ while running:
             mag_pts -= temp
 
             m_abilities = []
-            temp_ability_list = ability_objects.copy()
+            temp_ability_list = ability_list.copy()
+
+            if mtype != "Spirit":
+                var = first(x for x in temp_ability_list if x.name == "Spirit Body")
+                temp_ability_list.pop(temp_ability_list.index(var))
+            if mtype != "Fiend":
+                var = first(x for x in temp_ability_list if x.name == "Fiendish Blood")
+                temp_ability_list.pop(temp_ability_list.index(var))
+            if mtype != "Construct":
+                var = first(x for x in temp_ability_list if x.name == "Construct Body")
+                temp_ability_list.pop(temp_ability_list.index(var))
+            if mtype != "Celestial":
+                var = first(x for x in temp_ability_list if x.name == "Smite")
+                temp_ability_list.pop(temp_ability_list.index(var))
 
             if mtype == "Animal":
                 focus = 0
@@ -275,7 +289,7 @@ while running:
                 temp_ability_list = no_magic_list.copy()
 
             if mtype == "Celestial" and ability_pts >= 1:
-                var = first(x for x in temp_ability_list if x.name == "Flying")
+                var = first(x for x in temp_ability_list if x.name == "Flight")
                 m_abilities.append(var)
                 temp_ability_list.pop(temp_ability_list.index(var))
                 ability_pts -= var.cost
@@ -308,7 +322,7 @@ while running:
 
             if mtype == "Dragon":
                 if ability_pts >= 1:
-                    var = first(x for x in temp_ability_list if x.name == "Flying")
+                    var = first(x for x in temp_ability_list if x.name == "Flight")
                     m_abilities.append(var)
                     temp_ability_list.pop(temp_ability_list.index(var))
                     ability_pts -= var.cost
@@ -318,26 +332,26 @@ while running:
                     temp_ability_list.pop(temp_ability_list.index(var))
                     ability_pts -= var.cost
                 if ability_pts >= 3:
-                    var = first(x for x in temp_ability_list if x.name == "Greater Natural Weapons")
+                    var = first(x for x in temp_ability_list if x.name == "Natural Weapons, Greater")
                     m_abilities.append(var)
                     temp_ability_list.pop(temp_ability_list.index(var))
-                    ability_pts -= var.cost
-                    var = first(x for x in temp_ability_list if x.name == "Enhanced Natural Weapons")
+                    ability_pts -= 3
+                    var = first(x for x in temp_ability_list if x.name == "Natural Weapons, Enhanced")
                     temp_ability_list.pop(temp_ability_list.index(var))
                     var = first(x for x in temp_ability_list if x.name == "Natural Weapons")
                     temp_ability_list.pop(temp_ability_list.index(var))
-                if ability_pts >= 2 and [x for x in temp_ability_list if x.name == "Enhanced Natural Weapons"]:
-                    var = first(x for x in temp_ability_list if x.name == "Enhanced Natural Weapons")
+                if ability_pts >= 2 and [x for x in temp_ability_list if x.name == "Natural Weapons, Enhanced"]:
+                    var = first(x for x in temp_ability_list if x.name == "Natural Weapons, Enhanced")
                     m_abilities.append(var)
                     temp_ability_list.pop(temp_ability_list.index(var))
-                    ability_pts -= var.cost
+                    ability_pts -= 2
                     var = first(x for x in temp_ability_list if x.name == "Natural Weapons")
                     temp_ability_list.pop(temp_ability_list.index(var))
                 if ability_pts >= 1 and [x for x in temp_ability_list if x.name == "Natural Weapons"]:
                     var = first(x for x in temp_ability_list if x.name == "Natural Weapons")
                     m_abilities.append(var)
                     temp_ability_list.pop(temp_ability_list.index(var))
-                    ability_pts -= var.cost
+                    ability_pts -= 1
 
             if mtype == "Fey" and ability_pts >= 0:
                 var = first(x for x in temp_ability_list if x.name == "Iron Sensitivity")
@@ -349,7 +363,7 @@ while running:
                 var = first(x for x in temp_ability_list if x.name == "Fiendish Blood")
                 m_abilities.append(var)
                 temp_ability_list.pop(temp_ability_list.index(var))
-                ability_pts -= 2
+                ability_pts -= var.cost
 
             if mtype == "Magical Beast" and ability_pts >= 1:
                 var = first(x for x in temp_ability_list if x.name == "Magical Body")
@@ -367,36 +381,42 @@ while running:
                 temp_ability_list = no_familiar.copy()
 
             while ability_pts > 0:
-                if ability_pts >= 3:
-                    ran_cost = rng(3)
-                    temp_list = []
-                    for obj in temp_ability_list:
-                        if obj.cost == ran_cost:
-                            temp_list.append(obj)
-                    ran_ability = temp_list[rng(len(temp_list) - 1)]
-                    m_abilities.append(ran_ability)
-                    ability_pts -= ran_ability.cost
-                    temp_ability_list.pop(temp_ability_list.index(ran_ability))
-                if ability_pts >= 2:
-                    ran_cost = rng(2)
-                    temp_list = []
-                    for obj in temp_ability_list:
-                        if obj.cost == ran_cost:
-                            temp_list.append(obj)
-                    ran_ability = temp_list[rng(len(temp_list) - 1)]
-                    m_abilities.append(ran_ability)
-                    ability_pts -= ran_ability.cost
-                    temp_ability_list.pop(temp_ability_list.index(ran_ability))
-                if ability_pts >= 1:
-                    ran_cost = 1
-                    temp_list = []
-                    for obj in temp_ability_list:
-                        if obj.cost == ran_cost:
-                            temp_list.append(obj)
-                    ran_ability = temp_list[rng(len(temp_list) - 1)]
-                    m_abilities.append(ran_ability)
-                    ability_pts -= ran_ability.cost
-                    temp_ability_list.pop(temp_ability_list.index(ran_ability))
+                requirements_list = [x for x in temp_ability_list if x.requirements != "None"]
+                non_req_list = [x for x in temp_ability_list if x.requirements == "None"]
+
+                req_names = []
+                for obj in requirements_list:
+                    req_names.append(obj.requirements)
+
+                m_abil_names = []
+                for obj in m_abilities:
+                    m_abil_names.append(obj.name)
+
+                for req in req_names:
+                    if req not in m_abil_names:
+                        var = first(x for x in requirements_list if x.requirements == req)
+                        requirements_list.pop(requirements_list.index(var))
+
+                # Creates a temporary list that combines the abilities with and without requirements after removing
+                # the ones that aren't met for the requirements list
+                x_list = requirements_list + non_req_list
+
+                temp_list = [x for x in x_list if x.cost <= ability_pts]
+
+                # Chooses random ability, subtracts the cost from the current remaining pts, and removes it from list
+                ran_ability = temp_list[rng(len(temp_list) - 1)]
+                m_abilities.append(ran_ability)
+                ability_pts -= ran_ability.cost
+                temp_ability_list.pop(temp_ability_list.index(ran_ability))
+
+                if ran_ability.requirements != "None":
+                    print(f"***********************************************************************************")
+                    var = first(x for x in m_abilities if x.name == ran_ability.requirements)
+                    print(f"***********************************************************************************")
+                    m_abilities.pop(m_abilities.index(var))
+                    print(f"***********************************************************************************")
+                else:
+                    print("Random Requirement: None")
 
             for obj in m_abilities:
                 hp_mod += obj.hp_mod
@@ -404,6 +424,14 @@ while running:
                 attack_bonus += obj.attack_bonus
                 pd += obj.pd_mod
                 md += obj.md_mod
+                base_speed += obj.speed_mod
+
+            for obj in m_abilities:
+                if obj.name == "Flight":
+                    fly_speed = base_speed * 1
+            for obj in m_abilities:
+                if obj.name == "Improved Flight":
+                    fly_speed = base_speed * 2
 
             md += 7 + will + cha
             mana += 7 + (2 * cha) + mlvl
@@ -438,9 +466,9 @@ while running:
                   "\n" + ("-" * 25) +
                   "\nHealth: " + str(hp) +
                   "\nAura Rating: " + str(aura) +
-                  "\nBase Speed: " + str(speed) + "'")
+                  "\nBase Speed: " + str(base_speed) + "'")
             if fly_speed > 0:
-                print(f"\nFly Speed: {fly_speed}'")
+                print(f"Fly Speed: {fly_speed}'")
             print("PD: " + str(pd) +
                   "\nMD: " + str(md) +
                   "\nMana: " + str(mana) +
@@ -467,10 +495,10 @@ while running:
             else:
                 m_name = str(input("Time to name your monster: "))
             monster = Monster(m_name, mlvl, m_abilities, mtype, strength, dex, sta, intellect, will, cha, focus,
-                              talent, skill, hp, aura, pd, md, mana, attack_bonus, tier, speed)
+                              talent, skill, hp, aura, pd, md, mana, attack_bonus, tier, base_speed)
             print_monster_sheet()
+
     else:
         update_csv()
         print("Exiting Program. Have a nice day!\n")
-        print_abilities()
         running = False

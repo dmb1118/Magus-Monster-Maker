@@ -23,7 +23,7 @@ class Ability:
 
 def update_csv():
     df = pd.read_csv(url, usecols=["Ability Name", "Cost", "Description", "Magical", "hp_mod", "mana_mod", "attack_mod", "pd_mod", "md_mod", "speed_mod", "Requirements"])
-    print(df.to_string())
+    df.fillna(value='None', inplace=True)
     for ind in df.index:
         ability_list.append(Ability(df["Ability Name"][ind], df["Magical"][ind], df["Description"][ind],
                                     df["Cost"][ind], df["hp_mod"][ind], df["mana_mod"][ind],
@@ -31,6 +31,7 @@ def update_csv():
                                     df["Requirements"][ind]))
 
 
+
 def print_abilities():
     for abil in ability_list:
-        print(f"{'' + abil.name:<25} |  Cost: {abil.cost:<3} |  Effect: {abil.effect}")
+        print(f"{'' + abil.name:<25} |  Cost: {abil.cost:<3} | Req: {abil.requirements:<15} |  Effect: {abil.effect}")
