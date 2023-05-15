@@ -63,15 +63,17 @@ while running:
         repeater = 0
         tier = ""
         mtype = ""
+        mlvl = -1
         elemental_affinity = ""
         manual_data_repeat = 0
+        ability_manual = 0
         for repeater in range(repeat_num):
             repeater += 1
             if static_choice == "":
                 static_choice = str(input("Do you wish to randomize or submit information manually? Random/Manual\n"))
             if static_choice == "Manual":
                 if manual_data_repeat == 2 or manual_data_repeat == 0:
-                    if manual_data_repeat == 0:
+                    if manual_data_repeat == 0 and repeat_num > 1:
                         manual_data_repeat = int(input(f"Do you wish to keep the same options for all {repeat_num} "
                                                        f"monsters? \n1. Yes\n2. No\n"))
                     mlvl = int(input("What level monster do you wish to create?\n"))
@@ -82,6 +84,7 @@ while running:
                     elemental_affinity = str(input(f"What elemental affinity do you wish to assign?\n"
                                                    "Types: Abyss, Acid, Air, Arcane, Celestial, Cold, Earth, Fire, Force, "
                                                    "Lightning, Poison, Psychic, Water, None, Any\n"))
+                    ability_manual = int(input(f"Do you wish to choose the abilities manually?\n1. Yes\n2. No\n"))
                 else:
                     pass
             else:
@@ -456,24 +459,29 @@ while running:
                 temp_ability_list = no_familiar.copy()
 
             while ability_pts > 0:
-                if "Flight" in m_abilities:  # These allow only one type of additional movement to be placed in a monster's stats
-                    var = first(x for x in temp_ability_list if x.name == "Swimming")
-                    temp_ability_list.pop(temp_ability_list.index(var))
-
-                    var = first(x for x in temp_ability_list if x.name == "Climbing")
-                    temp_ability_list.pop(temp_ability_list.index(var))
-                elif "Swimming" in m_abilities:
-                    var = first(x for x in temp_ability_list if x.name == "Flight")
-                    temp_ability_list.pop(temp_ability_list.index(var))
-
-                    var = first(x for x in temp_ability_list if x.name == "Climbing")
-                    temp_ability_list.pop(temp_ability_list.index(var))
-                elif "Climbing" in m_abilities:
-                    var = first(x for x in temp_ability_list if x.name == "Swimming")
-                    temp_ability_list.pop(temp_ability_list.index(var))
-
-                    var = first(x for x in temp_ability_list if x.name == "Flight")
-                    temp_ability_list.pop(temp_ability_list.index(var))
+                for item in m_abilities:
+                    print(f"Monster Ability: {item.name}")
+                    if item.name == "Flight":  # These allow only one type of additional movement to be placed in a monster's stats
+                        for i in temp_ability_list:
+                            if i.name == "Swimming":
+                                temp_ability_list.pop(temp_ability_list.index(i))
+                        for i in temp_ability_list:
+                            if i.name == "Climbing":
+                                temp_ability_list.pop(temp_ability_list.index(i))
+                    elif item.name == "Swimming":
+                        for i in temp_ability_list:
+                            if i.name == "Flight":
+                                temp_ability_list.pop(temp_ability_list.index(i))
+                        for i in temp_ability_list:
+                            if i.name == "Climbing":
+                                temp_ability_list.pop(temp_ability_list.index(i))
+                    elif item.name == "Climbing":
+                        for i in temp_ability_list:
+                            if i.name == "Flight":
+                                temp_ability_list.pop(temp_ability_list.index(i))
+                        for i in temp_ability_list:
+                            if i.name == "Swimming":
+                                temp_ability_list.pop(temp_ability_list.index(i))
 
                 requirements_list = [x for x in temp_ability_list if x.requirements != "None"]
                 non_req_list = [x for x in temp_ability_list if x.requirements == "None"]
@@ -497,15 +505,42 @@ while running:
 
                 temp_list = [x for x in x_list if x.cost <= ability_pts]
 
-                # Chooses random ability, subtracts the cost from the current remaining pts, and removes it from list
-                ran_ability = temp_list[rng(len(temp_list) - 1)]
-                m_abilities.append(ran_ability)
-                ability_pts -= ran_ability.cost
-                temp_ability_list.pop(temp_ability_list.index(ran_ability))
+                # Chooses manual/random ability, subtracts the cost from the current remaining pts, and removes it from list
+                if ability_manual == 1:
+                    print(f"You have {ability_pts} feature points to spend.\n")
+                    ability_chosen = str(input(f"Please type in the exact ability name you wish to choose.\n"
+                                               f"You can type ? to list all available ability names.\n"))
+                    if ability_chosen == "?":
+                        temp_list.sort(key=lambda x: x.name)
+                        temp_list.sort(key=lambda x: x.cost)
+                        for x in temp_list:
+                            print("-"*25)
+                            print(f"Ability: {x.name}, Cost: {x.cost}")
+                        print("-"*25)
+                    else:
+                        var = first(x for x in temp_list if x.name == ability_chosen)
+                        if var.cost <= ability_pts:
+                            m_abilities.append(var)
+                            ability_pts -= var.cost
+                            temp_ability_list.pop(temp_ability_list.index(var))
 
-                if ran_ability.requirements != "None":
-                    var = first(x for x in m_abilities if x.name == ran_ability.requirements)
-                    m_abilities.pop(m_abilities.index(var))
+                            if var.requirements != "None":  # Removes an ability that is overwritten by a greater version
+                                var = first(x for x in m_abilities if x.name == var.requirements)
+                                m_abilities.pop(m_abilities.index(var))
+                        else:
+                            print(f"Cost too high, you only have {ability_pts} points left. Please pick again.")
+
+                elif ability_manual == 2:
+                    ran_ability = temp_list[rng(len(temp_list) - 1)]
+                    m_abilities.append(ran_ability)
+                    ability_pts -= ran_ability.cost
+                    temp_ability_list.pop(temp_ability_list.index(ran_ability))
+
+                    if ran_ability.requirements != "None":  # Removes an ability that is overwritten by a greater version
+                        var = first(x for x in m_abilities if x.name == ran_ability.requirements)
+                        m_abilities.pop(m_abilities.index(var))
+                else:
+                    ability_manual = int(input(f"Please type 1 to choose abilities manually, or 2 to randomize.\n"))
 
             # Adding all mods from abilities
             for obj in m_abilities:
@@ -588,9 +623,9 @@ while running:
             if fly_speed > 0:
                 print(f"Fly Speed: {fly_speed}'")
             if climb_speed > 0:
-                print(f"Fly Speed: {climb_speed}'")
+                print(f"Climb Speed: {climb_speed}'")
             if swim_speed > 0:
-                print(f"Fly Speed: {swim_speed}'")
+                print(f"Swim Speed: {swim_speed}'")
             print("PD: " + str(pd) +
                   "\nMD: " + str(md) +
                   "\nMana: " + str(mana) +
